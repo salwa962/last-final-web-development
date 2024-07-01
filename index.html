@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Storyline Central</title>
+    <style>
+        body {
+            background-color: #f5efef;
+            background-image: url('images/play.gif');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            font-family: Arial, sans-serif;
+            color: #0c0c0c;
+            padding: 20px;
+            padding-top: 60px;
+        }
+        .hidden-content {
+            display: none;
+        }
+        .comment-section {
+            max-width: 300px;
+            margin: 10px auto;
+            padding: 10px;
+            background-color: beige;
+            border-radius: 5px;
+            font-size: 0.9em;
+        }
+        .comment {
+            margin-bottom: 5px;
+            padding: 5px;
+            background-color: white;
+            border-radius: 3px;
+            border: 1px solid #ccc;
+        }
+        .comment p {
+            margin: 0;
+            font-size: 0.9em;
+        }
+        .comment-form {
+            margin-top: 5px;
+        }
+        .comment-form textarea {
+            width: 100%;
+            max-width: 100%;
+            font-size: 0.9em;
+        }
+        .toggle-comment-form, .comment-form button[type="submit"] {
+            font-size: 0.9em;
+            padding: 5px 10px;
+        }
+        .delete-form button {
+            font-size: 0.8em;
+            padding: 2px 5px;
+        }
+        .story-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .story-title {
+            font-size: 14px;
+            font-weight: normal;
+            color: white;
+        }
+        .story-actions {
+            margin-left: 20px;
+        }
+        .topnav {
+            background-color: beige;
+            overflow: hidden;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+        }
+        .topnav a {
+            float: left;
+            color: brown;
+            text-align: center;
+            padding: 14px 16px;
+            text-decoration: none;
+            font-size: 17px;
+        }
+        .topnav a:hover {
+            background-color: #ddd;
+            color: black;
+        }
+        .topnav a.active {
+            background-color: #04AA6D;
+            color: white;
+        }
+        .topnav input[type=text] {
+            float: right;
+            padding: 6px;
+            border: none;
+            margin-top: 8px;
+            margin-right: 16px;
+            font-size: 17px;
+        }
+        @media screen and (max-width: 600px) {
+            .topnav a, .topnav input[type=text] {
+                float: none;
+                display: block;
+                text-align: left;
+                width: 100%;
+                margin: 0;
+                padding: 14px;
+            }
+            .topnav input[type=text] {
+                border: 1px solid #ccc;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="topnav">
+        <a href="#" class="active" onclick="showContent('home')">Home</a>
+        <a href="#" onclick="showContent('about')">About</a>
+        <a href="#" onclick="showContent('contact')">Contact</a>
+        <input type="text" id="searchInput" placeholder="Search.." onkeyup="searchStories()">
+    </div>
+
+    <div style="position: fixed; top: 0; left: 0; padding: 10px;">
+        <a href="https://www.audible.com/ep/2book?twobooketest=true">
+            <img src="images/bird.jpg" alt="bird" style="height: 40px; width: 100px;">
+        </a>
+    </div>
+    <h1 style="margin-left: 120px; font-size: 2em; color: brown;">
+        <a href="https://www.audible.com/ep/2book?twobooketest=true" style="text-decoration: none; color: inherit;">Stories of Strength</a>
+    </h1>
+
+    <div id="home" class="content-section">
+        <div id="storyList">
+            <!-- Story containers will be dynamically added here -->
+        </div>
+    </div>
+
+    <div id="about" class="content-section" style="display: none;">
+        <h2>About Us</h2>
+        <p>Welcome to Storyline Central, where we share inspiring stories of strength and resilience from around the world.</p>
+    </div>
+
+    <div id="contact" class="content-section" style="display: none;">
+        <h2>Contact Us</h2>
+        <p>You can reach us at contact@storylinecentral.com</p>
+    </div>
+
+    <script>
+        const ebooks = {
+            "1": "The Little Star's Journey\nIn a small village in the African savannah, there was a young boy named Kofi who loved to stargaze...",
+            "2": "The Rainbow Garden\nIn a colorful village nestled in the hills, a young girl named Amara loved to plant flowers...",
+            "3": "The Tale of the Brave Little Kite\nIn a bustling seaside town, a young boy named Aiko loved to fly kites...",
+            "4": "From Home to Hope\nThe sun rose over Gaza, casting its golden rays on the shattered remains of Shuja'iyya...",
+            "5": "A New Dawn in Aleppo\nThe morning light barely pierced through the smoky haze over Aleppo...",
+            "6": "Whispers of Change\nIn the streets of Khartoum, Sudan, whispers of change stirred the air...",
+            "7": "The Lantern of Hope\nThe bustling markets of Damascus, Syria, were filled with the aroma of spices and the chatter of merchants...",
+            "8": "Echoes of Sakura\nIn a quaint village in Japan, nestled among cherry blossom trees, lived a girl named Hana..."
+        };
+
+        const summaries = {
+            "1": "A young boy named Kofi embarks on an adventure to return a fallen star to the sky, learning about courage and kindness along the way.",
+            "2": "Amara, a young girl, saves her withering garden during a drought by seeking a magical spring, and in the process, creates a community garden with her village.",
+            "3": "Aiko, a boy who loves flying kites, rescues his favorite kite from an island with the help of some monkeys, teaching his village about compassion and determination.",
+            "4": "Youssef's family flees their war-torn home in Gaza, finding hope and resilience in a refugee camp as they dream of returning and rebuilding.",
+            "5": "Noor's family navigates the perils of war in Aleppo, finding strength in their unity and hope for a brighter future amidst the ruins.",
+            "6": "Fatima, a university student in Khartoum, joins the protests for freedom, witnessing the fall of a dictator and the dawn of a new democratic era in Sudan.",
+            "7": "Zainab's family finds hope in a lantern as they navigate the challenges of war and displacement, inspiring their community with resilience and kindness.",
+            "8": "Hana, a girl from a Japanese village, helps replant cherry blossom trees after a storm, restoring the beauty of her village and spreading a message of hope and unity."
+        };
+
+        const comments = {
+            "1": [], "2": [], "3": [], "4": [], "5": [], "6": [], "7": [], "8": []
+        };
+
+        function createStoryElements() {
+    const storyList = document.getElementById('storyList');
+    for (const [id, title] of Object.entries(ebooks)) {
+        const storyContainer = document.createElement('div');
+        storyContainer.className = 'story-container';
+        storyContainer.id = `story-container${id}`;
+
+        storyContainer.innerHTML = `
+            <a href="#" onclick="downloadStory('${id}');" style="margin-right: 10px;">
+                <img src="images/my.jpg" alt="eBook" style="height: 60px; width: 60px;">
+            </a>
+            <span class="story-title">${title.split('\n')[0]}</span>
+            <div id="story-content${id}" class="story-content hidden-content">
+                <p style="color: white;">${title}</p>
+            </div>
+            <button onclick="toggleText('summary${id}');" style="background-color: green; color: white;">READ</button>
+            <p id="summary${id}" style="display:none; color: white;">${summaries[id]}</p>
+            <button onclick="toggleAudio('${id}')" style="background-color: blue; color: white;">LISTEN</button>
+            <div style="margin-top: 10px;">
+                <a href="#" onclick="shareOnFacebook('${id}');"><img src="images/face.jpg" alt="Share on Facebook" style="height: 30px; width: 30px;"></a>
+                <a href="#" onclick="shareOnTwitter('${id}');"><img src="images/twitter.jpg" alt="Share on Twitter" style="height: 30px; width: 30px;"></a>
+            </div>
+            <div class="comment-section" id="comment-section${id}">
+                <form class="comment-form" onsubmit="addComment('${id}'); return false;">
+                    <textarea name="comment" rows="2"></textarea>
+                    <br>
+                    <button type="submit" style="background-color: brown; color: white;">WRITE REVIEW</button>
+                </form>
+            </div>
+        `;
+
+        storyList.appendChild(storyContainer);
+        updateComments(id);
+    }
+}
+    
+
+            
+        
+
+        function showContent(contentId) {
+            const contentSections = document.getElementsByClassName('content-section');
+            for (let section of contentSections) {
+                section.style.display = 'none';
+            }
+            document.getElementById(contentId).style.display = 'block';
+
+            const navLinks = document.getElementsByClassName('topnav')[0].getElementsByTagName('a');
+            for (let link of navLinks) {
+                link.classList.remove('active');
+                if (link.getAttribute('onclick').includes(contentId)) {
+                    link.classList.add('active');
+                }
+            }
+        }
+
+        function toggleAudio(storyId) {
+    const audioButton = document.querySelector(`#story-container${storyId} button:nth-of-type(2)`);
+    const story = ebooks[storyId];
+
+    if (window.speechSynthesis.speaking) {
+        window.speechSynthesis.cancel();
+        audioButton.textContent = "LISTEN";
+        audioButton.style.backgroundColor = "blue";
+    } else {
+        const utterance = new SpeechSynthesisUtterance(story);
+        utterance.onend = function() {
+            audioButton.textContent = "LISTEN";
+            audioButton.style.backgroundColor = "blue";
+        };
+        audioButton.textContent = "PAUSE";
+        audioButton.style.backgroundColor = "red";
+        window.speechSynthesis.speak(utterance);
+    }
+}
+        function searchStories() {
+            const input = document.getElementById('searchInput').value.trim().toLowerCase();
+            const stories = document.getElementsByClassName('story-container');
+            
+            for (let story of stories) {
+                const title = story.getElementsByClassName('story-title')[0].innerText.toLowerCase();
+                const contentId = 'story-content' + story.id.replace('story-container', '');
+                const content = document.getElementById(contentId);
+                
+                if (input === "") {
+                    story.style.display = '';
+                    content.style.display = 'none';
+                } else {
+                    if (title.includes(input)) {
+                        story.style.display = '';
+                        content.style.display = 'block';
+                    } else {
+                        story.style.display = 'none';
+                        content.style.display = 'none';
+                    }
+                }
+            }
+        }
+
+        function toggleText(summaryId) {
+            const summary = document.getElementById(summaryId);
+            summary.style.display = summary.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function playAudio(storyId) {
+    const audioElement = document.getElementById(`audio-story${storyId}`);
+    if (audioElement.src === '') {
+        // Simulate loading an audio file
+        audioElement.src = `data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjI5LjEwMAAAAAAAAAAAAAAA//OEAAAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAAEAAABIADAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV6urq6urq6urq6urq6urq6urq6urq6urq6v////////////////////////////////8AAAAATGF2YzU4LjU0AAAAAAAAAAAAAAAAJAAAAAAAAAAAASDs90hvAAAAAAAAAAAAAAAAAAAA//MUZAAAAAGkAAAAAAAAA0gAAAAATEFN//MUZAMAAAGkAAAAAAAAA0gAAAAARTMu//MUZAYAAAGkAAAAAAAAA0gAAAAAOTku//MUZAkAAAGkAAAAAAAAA0gAAAAANVVV`;
+    }
+    if (audioElement.paused) {
+        audioElement.play();
+    } else {
+        audioElement.pause();
+    }
+}
+
+        function shareOnFacebook(storyId) {
+            const storySummary = document.getElementById('summary' + storyId).innerText;
+            const url = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(window.location.href) + '&quote=' + encodeURIComponent(storySummary);
+            window.open(url, '_blank');
+        }
+
+        function shareOnTwitter(storyId) {
+            const storySummary = document.getElementById('summary' + storyId).innerText;
+            const url = 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(storySummary) + '&url=' + encodeURIComponent(window.location.href);
+            window.open(url, '_blank');
+        }
+        function downloadStory(storyId) {
+    const storyContent = ebooks[storyId];
+    const blob = new Blob([storyContent], {type: "text/plain;charset=utf-8"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `story_${storyId}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+        function addComment(storyId) {
+            const commentForm = document.querySelector(`#comment-section${storyId} .comment-form`);
+            const commentText = commentForm.querySelector('textarea').value;
+            if (commentText) {
+                comments[storyId].push(commentText);
+                updateComments(storyId);
+                commentForm.reset();
+            }
+        }
+
+        function deleteComment(storyId, commentIndex) {
+            comments[storyId].splice(commentIndex, 1);
+            updateComments(storyId);
+        }
+
+        function updateComments(storyId) {
+            const commentSection = document.getElementById(`comment-section${storyId}`);
+            const commentList = commentSection.querySelector('.comment-list') || document.createElement('div');
+            commentList.className = 'comment-list';
+            commentList.innerHTML = '';
+
+            comments[storyId].forEach((comment, index) => {
+                const commentElement = document.createElement('div');
+                commentElement.className = 'comment';
+                commentElement.innerHTML = `
+                    <p>${comment}</p>
+                    <button onclick="deleteComment('${storyId}', ${index})" style="background-color: red; color: white;">Delete</button>
+                `;
+                commentList.appendChild(commentElement);
+            });
+
+            if (commentSection.querySelector('.comment-list')) {
+                commentSection.replaceChild(commentList, commentSection.querySelector('.comment-list'));
+            } else {
+                commentSection.insertBefore(commentList, commentSection.querySelector('.comment-form'));
+            }
+        }
+
+        // Initialize the page
+        createStoryElements();
+        showContent('home');
+    </script>
+</body>
+</html>
